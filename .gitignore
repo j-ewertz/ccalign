@@ -2,6 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
+ccalign/package_testing
 
 # C extensions
 *.so
