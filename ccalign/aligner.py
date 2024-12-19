@@ -1242,7 +1242,7 @@ def execute_alignment(df, num_processes=False, calls_per_core=100):
         # safe dataframes
         # df.to_pickle(r'df_alignment.pkl')
         
-        df_stats_total.to_pickle(df_stats.pkl)
+        df_stats_total.to_pickle(r"df_stats.pkl")
         df_word_level.to_pickle(f'df_word_level_{iteration}.pkl')
         df_sent_level.to_pickle(f'df_sent_level_{iteration}.pkl')
 

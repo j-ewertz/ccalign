@@ -1,53 +1,10 @@
-import os
 import time
-import glob
-import shutil
 from tqdm import tqdm
-import os
 import pandas as pd
 from pandas import DataFrame
-import json
 import multiprocessing as mp
-from pydub import AudioSegment
-import numpy as np
 from typing import Callable, Optional, List, Dict, Any
-
     
-
-def upload_files(bucket, files_to_upload_list, dest_path_list, delete=False):
-    """
-    This function uploads files to GCP bucket
-    before usage set:
-    from google.cloud import storage
-    bucket = storage.Client().get_bucket('BUCKET_NAME')
-    """
-    
-    for local_file, bucket_file in list(zip(files_to_upload_list, dest_path_list)):
-
-        if os.path.isfile(local_file):
-            blob = bucket.blob(bucket_file)
-            blob.upload_from_filename(local_file)
-
-            if delete:
-                os.remove(local_file)
-
-
-def download_files(bucket, files_to_download_list, dest_path_list):
-
-    """
-    This function downloads files from GCP bucket
-    before usage set:
-    """
-
-    for bucket_file, local_file in list(zip(files_to_download_list, dest_path_list)):
-        
-        blob = bucket.blob(bucket_file)
-        if blob.exists():
-            blob.download_to_filename(local_file)
-        else:
-            return 1
-    return 0
-
 
 def execute_multiprocessing(df: DataFrame,
                             func: Callable,

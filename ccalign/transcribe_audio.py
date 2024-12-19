@@ -7,13 +7,15 @@ import os
 from pytorch_lightning.utilities.warnings import PossibleUserWarning
 import logging
 import torchaudio
-torchaudio.set_audio_backend("soundfile")
+from typing import Literal
+# torchaudio.set_audio_backend("soundfile")
 # ignore warnings and logging due to whisperx import
 logging.basicConfig(level=logging.ERROR)
 logging.getLogger('pytorch_lightning').setLevel(logging.ERROR)
 
 
 def apply_whisperx(row: pd.Series,
+                   model: str="large-v2",
                    batch_size: int=16,
                    device: str="cuda",
                    dtype: str="float16"):
@@ -30,7 +32,7 @@ def apply_whisperx(row: pd.Series,
 
     # use whisperAI to transcribe audio
     model = whisperx.load_model(
-        "base",
+        model,
         device=device,
         compute_type=dtype,
         language='en'
@@ -90,8 +92,11 @@ def apply_whisperx(row: pd.Series,
 
 
 def execute_whisperx(df: pd.DataFrame,
+                     model: str="large-v2",
                      batch_size_whisper: int=16,
-                     num_processes_whisperx: int=2):
+                     num_processes_whisperx: int=2,
+                     device: Literal["cuda", "cpu"]="cpu",
+                     dtype:str="float16"):
     
     # execute speech-to-text using multiprocessing
     if num_processes_whisperx > 1:
@@ -102,9 +107,10 @@ def execute_whisperx(df: pd.DataFrame,
                 timeout=120,
                 groupby=False,
                 func_kwargs={
+                    'model': model,
                     'batch_size': batch_size_whisper,
-                    'device': "cuda",
-                    'dtype': "float16"
+                    'device': device,
+                    'dtype': dtype
                 })
     
     # execute speech-to-text process using one process 
