@@ -16,12 +16,41 @@ import gc
 from typing import Optional, List, Dict, Any
 from dataclasses import dataclass
 
+        
+@dataclass
+class Node:
+    transcript_ori: str
+    transcript: str
+    whisper_word: str
+    whisper_index: int
+    transcript_index: int
+    frontier_index: int
+    state: str
+    start: float
+    end: float
+    area_hit: bool
+    multiple_word_hit: bool
+    distance: float
+    similarity: float
+    parid: int
+    sentid: int
+    call_section: str
+    correct_par: bool = False
+    correct_sent: bool = False
+    score: Optional[float] = None
+
+    def __repr__(self) -> str:
+        return (f"Node(transcript_ori={self.transcript_ori!r}, "
+                f"transcript={self.transcript!r}, "
+                f"whisper_word={self.whisper_word!r}, "
+                f"start={self.start})")
+
 
 def tokenize_text(text: str, tokens_only: bool=True, sep: str=' '):
     """
     Function that tokenizes a text.
     If tokens_only is True, it returns only the cleaned tokens,
-    otherwise it return a tuple of the cleaned token and the original token
+    otherwise it return a tuple of the cleaned token and the original token.
     """
     
     # initialize inflect engine
@@ -88,7 +117,7 @@ def tokenize_text(text: str, tokens_only: bool=True, sep: str=' '):
 def compare_strings(s1, s2):
     """
     Function that compares two strings
-    and returns the levenshtein distance and similarity.
+    and returns levenshtein-distance and similarity.
     """
     
     distance = levenshtein_distance(s1, s2)
@@ -98,40 +127,10 @@ def compare_strings(s1, s2):
     return distance, similarity
 
 
-        
-@dataclass
-class Node:
-    transcript_ori: str
-    transcript: str
-    whisper_word: str
-    whisper_index: int
-    transcript_index: int
-    frontier_index: int
-    state: str
-    start: float
-    end: float
-    area_hit: bool
-    multiple_word_hit: bool
-    distance: float
-    similarity: float
-    parid: int
-    sentid: int
-    marker: str
-    correct_par: bool = False
-    correct_sent: bool = False
-    score: Optional[float] = None
-
-    def __repr__(self) -> str:
-        return (f"Node(transcript_ori={self.transcript_ori!r}, "
-                f"transcript={self.transcript!r}, "
-                f"whisper_word={self.whisper_word!r}, "
-                f"start={self.start})")
-
-
 class StackFrontier():
     
     def __init__(self):
-        """create frontier"""
+        """Create frontier."""
         self.frontier = []
     
     
@@ -144,20 +143,20 @@ class StackFrontier():
     
     
     def add(self, node):
-        """Add note to frontier"""
+        """Add node to frontier."""
         self.frontier.append(node)
     
         
     def remove(self, num_to_remove):
         """
-        Method that removes x last nodes
+        Method that removes x last nodes.
         """
         self.frontier = self.frontier[:-num_to_remove]
      
         
     def last_node(self):
         """
-        Return last element if it exists
+        Return last element if existing.
         """ 
 
         # return last node if it exists
@@ -171,7 +170,7 @@ class StackFrontier():
     
     def first_node(self):
         """
-        Returns first element
+        Returns first element.
         """
         
         return self.frontier[0]
@@ -179,14 +178,16 @@ class StackFrontier():
     
     def return_segment(self, parid):
         """
-        Returns all node of a specific paragraph
+        Returns all node of a specific paragraph.
         """
         return [node for node in self.frontier
                 if node.parid == parid]
     
     
     def check_track(self, steps=2, frontier_index=None):
-        """Check if last nodes are aligned correctly."""
+        """
+        Check if last nodes are aligned correctly.
+        """
         
         if frontier_index != None:
             nodes_to_check = self.frontier[frontier_index-steps:frontier_index]
@@ -213,7 +214,7 @@ class StackFrontier():
     
     def postprocess(self):
         """
-        Function processes the stack and changes nodes declared as false
+        Function which processes the stack and changes nodes declared as False.
         """
         
         # use two iterations to clean the stack
@@ -238,7 +239,9 @@ class StackFrontier():
                     
         
     def multiple_area_hits(self, number):
-        """Returns whisper positions and frontier position of multiple area hits if existing"""
+        """
+        Returns whisper positions and frontier position of multiple area hits if existing.
+        """
       
         nodes = self.frontier[-number:]
         
@@ -297,10 +300,10 @@ class StackFrontier():
             # load audio file    
             audio = AudioSegment.from_mp3(path_to_audio)
         
-        # enhance by 1 because of header
+        # enhance by 1 due to header
         for i in tqdm(range(end - start)):    
             
-            # use header in the first iteration
+            # first iteration: use header
             if i == 0:
                 info = header
             else:
@@ -313,7 +316,6 @@ class StackFrontier():
                         node.whisper_index, node.transcript_ori,
                         node.start, node.end, node.score]
                 
-                # increase start by 1
                 start += 1
             
             row = [f"{info[_i]:{formatter[_i]}}" for _i in range(len(header))]
@@ -340,8 +342,10 @@ class StackFrontier():
 
 
     def check_multiple_positions(self, position, nums_to_check):
-        """Function that take a position and checks the corrects alignment 
-        in this and the following 2 positions"""
+        """
+        Function that takes a position as an argument and checks the correct alignment 
+        om that and the following 2 positions.
+        """
         
         add_position = list(range(nums_to_check))
         positions_list = [position + x for x in add_position]
@@ -350,11 +354,11 @@ class StackFrontier():
         return True if True in position_checks else False
     
     
-    def stats(self, markers, print_stats):
+    def stats(self, call_sections, print_stats):
         """
         Function that checks how many nodes, paragraphs and sentences are
-        aligned correctly. Adds information to the stack and returns
-        statistics
+        aligned correctly.
+        Adds information to the stack and returns statistics.
         """
         
         # initialize needed variables
@@ -422,7 +426,7 @@ class StackFrontier():
                     
         # create overall stats
         # extract relevant nodes
-        relevant_nodes = [node for node in self.frontier if node.marker in markers]
+        relevant_nodes = [node for node in self.frontier if node.call_section in call_sections]
         
         # calc rations
         uncorrect_nodes = len([node for node in relevant_nodes if node.state == False])
@@ -497,7 +501,10 @@ class WhisperOutput():
         
         
     def segment_information(self, position):
-        """Function that can take a position or a list of positions and returns segment information"""
+        """
+        Function that can take a position or a list of positions 
+        and returns segment information.
+        """
         
         position_start = position[0] if isinstance(position, list) else position
 
@@ -517,8 +524,10 @@ class WhisperOutput():
     
     
     def segment_token(self, segment_i):
-        """Method that takes the segment-index and 
-        return to segment token and lengths"""
+        """
+        Method that takes the segment-index and 
+        return to segment token and lengths.
+        """
 
         if segment_i == 0:
             seg_tokens = self.tokens[:self.position_list[segment_i]]
@@ -532,7 +541,7 @@ class WhisperOutput():
     def clean_timing(self, position_dict, delete_false_entries=True):
         """
         Method that cleans timing information in case of a multiple word hit.
-        Takes position dict as an parameter in form of {segment: {starting index:len word}
+        Takes position dict as an parameter in form of {segment: {starting index:len word}.
         """
 
         # extract key from dict
@@ -583,7 +592,7 @@ class WhisperOutput():
     def word_level_alignment(self):
         """
         Method that performs the word level alignment 
-        of whisperx and tokenization
+        of whisperx and tokenization.
         """
         
         # clean segments that have been sorted to original
@@ -707,7 +716,9 @@ class WhisperOutput():
         
             
 class Aligner():
-    """A Class that takes a row containing path information and performs the alignment."""
+    """
+    Class that takes a row containing path information and performs the alignment.
+    """
     
     def __init__(self, row):
         
@@ -734,16 +745,7 @@ class Aligner():
         
         # create a stack that keeps track of each aligned word
         self.stack = StackFrontier()
-    
-    
-    def delete_files(self, file_list):
-        """
-        Function that deletes local files.
-        """
-        
-        for file in file_list:
-            os.remove(file)
-        
+         
     
     def compare_hits(self, area_hit, paragraph_tokens, transcript_index, include_hit=False, comp_words=3):
         
@@ -759,7 +761,7 @@ class Aligner():
             # use next three words to define similarity of strings
             # clean if tokens are given in form of tuples
             if isinstance(paragraph_tokens[0], tuple):
-                relevant_tokens = [token[0] for token in    # ('thank', 'Thank')
+                relevant_tokens = [token[0] for token in # ('thank', 'Thank')
                                     paragraph_tokens[transcript_index+i:transcript_index+i+comp_words]]
             else:
                 relevant_tokens = paragraph_tokens
@@ -785,7 +787,7 @@ class Aligner():
             transcript_index = 0
         
         whisper_text = "__".join(self.whisper.tokens)
-        transcript_text = self.speech_sequence['speech_parts'][speech_i]['lines'][0]
+        transcript_text = self.speech_sequence['paragraphs'][speech_i]['text']
         transcript_tokens = tokenize_text(transcript_text)
         max_tokens = len(transcript_tokens)
         
@@ -838,10 +840,10 @@ class Aligner():
                         # add tokens from next paragraph(s) 
                         while len(new_transcript_tokens) < token_len:
                             speech_i += 1
-                            if speech_i < len(self.speech_sequence['speech_parts']):
+                            if speech_i < len(self.speech_sequence['paragraphs']):
                                 
                                 needed_tokens = token_len - len(new_transcript_tokens)
-                                transcript_text_i1 = self.speech_sequence['speech_parts'][speech_i]['lines'][0]
+                                transcript_text_i1 = self.speech_sequence['paragraphs'][speech_i]['text']
                                 transcript_tokens_i1 = tokenize_text(transcript_text_i1)[:needed_tokens]
                                 new_transcript_tokens += transcript_tokens_i1
                             else:
@@ -872,25 +874,36 @@ class Aligner():
         return None, None
                 
         
-    def alignment(self, markers, print_stats=False):
+    def alignment(self, call_sections, print_stats=False):
+        
         """Algorithm that alignes whisperx output and transcript
 
         Args:
-            dict in the form of {'speech_parts': {'lines': list[str['speaker level text here']],
-                                                  'marker': any[str['-PR-', '-Q_A-', '-Q-', '-OP-']],
-                                                  'speaker': str[speaker name here],
-                                                  'speaker_info': str['speaker information here']}} 
+            dict in the folling format:
+            {
+                "paragraphs": [
+                    {
+                    "id": int,
+                    "text": str['speaker level text here'],
+                    "speaker": str[speaker name here],
+                    "speaker_info": str['speaker information here'],
+                    "call_section": Literal['-PR-', '-Q_A-', '-Q-', '-OP-']]
+                    },
+                    {
+                    ...
+                    }
+                ]
+            }
 
         Returns:
             stack, statistics: returns aligned stack and statistics 
-            based on the markers
         """
         
         
-        for speech_number, speech_part in enumerate(self.speech_sequence['speech_parts']):
+        for speech_number, speech_part in enumerate(self.speech_sequence['paragraphs']):
             
-            marker = speech_part['marker']
-            paragraph_text = speech_part['lines'][0]
+            call_section = speech_part['call_section']
+            paragraph_text = speech_part['text']
             paragraph_tokens = []
             sentence_info = []
             
@@ -1051,7 +1064,7 @@ class Aligner():
                         similarity, 
                         speech_number,
                         sentence_number,
-                        marker,
+                        call_section,
                         score=score
                         ))
 
@@ -1061,7 +1074,7 @@ class Aligner():
         self.stack.postprocess()
         
         # add par and sentence statistics
-        stats = self.stack.stats(markers, print_stats=print_stats)
+        stats = self.stack.stats(call_sections, print_stats=print_stats)
         
         # add identification info to stats and stack
         stats['id'] = self.id
@@ -1074,11 +1087,15 @@ class Aligner():
 
 def postprocess_results(results):
     
-    """Function that processes the results after alignment
+    """Function that postprocesses the results after alignment
 
     Args:
         results (tuple of nested lists): results of align_dataframe()
+    
+    -> Tuple(DataFrame, DataFrame, DataFrame, List)
     """
+    
+    
 
     start_timing = time.time()
     
@@ -1099,8 +1116,7 @@ def postprocess_results(results):
     df_word_level = pd.concat(df_stacks)
     
     # free memory
-    del df_stacks
-    del stats
+    del df_stacks, stats
     gc.collect()
     
     sys.stdout.write('stack_df_created\n')
@@ -1110,7 +1126,7 @@ def postprocess_results(results):
     df_sent = df_word_level.groupby(groupby_cols)['start'].min().reset_index()
     
     merge_dict = {'end': df_word_level.groupby(groupby_cols)['end'].max().reset_index()}
-    merge_dict['marker'] = df_word_level.groupby(groupby_cols)['marker'].max().reset_index()
+    merge_dict['call_section'] = df_word_level.groupby(groupby_cols)['call_section'].max().reset_index()
     merge_dict['state'] = df_word_level[groupby_cols + ['correct_sent']].drop_duplicates(groupby_cols)
     merge_dict['start_score'] = df_word_level.sort_values('transcript_index').groupby(groupby_cols, as_index=False).first()[groupby_cols + ['score']]\
         .rename({'score': 'start_score'}, axis=1)
@@ -1146,7 +1162,7 @@ def align_dataframe(df):
         processed_calls.append([row['id']])
         try:
             aligner = Aligner(row=row)
-            stack, stats = aligner.alignment(markers=['-Q-', '-Q_A-', '-PR-'], print_stats=False)
+            stack, stats = aligner.alignment(call_sections=['-Q-', '-Q_A-', '-PR-'], print_stats=False)
             stack_list.append(stack)
             stats_list.append(stats)
         except Exception as e:
@@ -1177,10 +1193,7 @@ def align_dataframe(df):
     return (df_word_level, stats_list, processed_calls)
 
 
-def execute_alignment(df, num_processes=False, calls_per_core=100):
-    
-    if num_processes is False:
-        num_processes = mp.cpu_count() - 2
+def execute_alignment(df, num_processes_alignment:int=10, calls_per_core:int=100):
     
     # initialize variables
     if 'aligned' not in df.columns:
@@ -1197,28 +1210,26 @@ def execute_alignment(df, num_processes=False, calls_per_core=100):
             iteration += 1
         
         # create a pool of workers
-        pool = mp.Pool(processes=num_processes)
+        pool = mp.Pool(processes=num_processes_alignment)
         
         # define calls to process
-        num_to_process = calls_per_core * num_processes
+        num_to_process = calls_per_core * num_processes_alignment
         iteration_chunks = rows_to_process[:num_to_process]
         
         # split the dataframe
-        df_splitted = np.array_split(iteration_chunks, num_processes)
-        
-        # set performed_iterations as a fixed parameter to allow map()
+        df_splitted = np.array_split(iteration_chunks, num_processes_alignment)
 
         # apply pooling using map
         results = pool.map(align_dataframe, df_splitted)
         
-        # close the pool and wait with further execution
+        # close pool and wait with further execution
         # until all subprocesses are completed.
         pool.close()
         pool.join()
         pool.terminate()
         sys.stdout.write('\n\npool terminated successfully\n\n')
         
-        # process for results
+        # postprocess results
         df_word_level, df_sent_level, df_stats, processed_rows = postprocess_results(results)
         sys.stdout.write('\n\nresults processed successfully\n\n')
 
@@ -1239,14 +1250,13 @@ def execute_alignment(df, num_processes=False, calls_per_core=100):
         sys.stdout.write(dur_str)
         
         # safe dataframes
-        # df.to_pickle(r'df_alignment.pkl')
-        
         df_stats_total.to_pickle(r"df_stats.pkl")
         df_word_level.to_pickle(f'df_word_level_{iteration}.pkl')
         df_sent_level.to_pickle(f'df_sent_level_{iteration}.pkl')
 
         # update starting time
         start = end
-        # delete results
+        
+        # free ram
         del results, df_word_level, df_sent_level
         gc.collect()

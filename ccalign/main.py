@@ -1,11 +1,14 @@
 import pandas as pd
-from aligner import execute_alignment
-from transcribe_audio import execute_whisperx
+from alignment import execute_alignment
 import torch
+from audio_transcription import execute_whisperx
+import multiprocessing as mp
 
 df_alignment = pd.read_parquet(r'package_testing/df_2_local.parquet')
+df_alignment.columns
 
 device, dtype = ("cuda", "float16") if torch.cuda.is_available() else ("cpu", "float32")
+cpu_cores = mp.cpu_count()
 
 execute_whisperx(
     df_alignment,
@@ -19,6 +22,10 @@ execute_whisperx(
 
 execute_alignment(
     df_alignment,
-    num_processes=2,
+    num_processes_alignment=cpu_cores - 2,
     calls_per_core=150
     )
+
+
+df_sent = pd.read_pickle(r'df_sent_level_1.pkl')
+df_stats = pd.read_pickle(r'df_stats.pkl')

@@ -1,21 +1,20 @@
 import whisperx
 import pandas as pd
-from aligner import tokenize_text
+from alignment import tokenize_text
 from utils import execute_multiprocessing
 import json
 import os
-from pytorch_lightning.utilities.warnings import PossibleUserWarning
-import logging
-import torchaudio
 from typing import Literal
-# torchaudio.set_audio_backend("soundfile")
-# ignore warnings and logging due to whisperx import
-logging.basicConfig(level=logging.ERROR)
+import logging
+import warnings
+# TODO: adjust when whisperx pull request #936 is accepted
+# new package versions: faster-whisper==1.1.0 and pyannote.audio==3.3.2 
+warnings.filterwarnings("ignore", category=UserWarning)
 logging.getLogger('pytorch_lightning').setLevel(logging.ERROR)
 
 
 def apply_whisperx(row: pd.Series,
-                   model: str="large-v2",
+                   model: str="base.en",
                    batch_size: int=16,
                    device: str="cuda",
                    dtype: str="float16"):
@@ -113,11 +112,11 @@ def execute_whisperx(df: pd.DataFrame,
                     'dtype': dtype
                 })
     
-    # execute speech-to-text process using one process 
+    # execute speech-to-text process using single core 
     else:
         results = df.apply(apply_whisperx, axis=1).to_list()
     
-    # merge infos to original dataframe and return
+    # merge infos to original dataframe
     df_results = pd.DataFrame(results)
     return df.merge(df_results, on='id')
 
