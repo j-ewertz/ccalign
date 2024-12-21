@@ -9,7 +9,6 @@ import os
 import pandas as pd
 from tqdm import tqdm
 import multiprocessing as mp
-from functools import partial
 import numpy as np
 import time
 import inflect

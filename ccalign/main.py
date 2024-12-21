@@ -9,7 +9,7 @@ device, dtype = ("cuda", "float16") if torch.cuda.is_available() else ("cpu", "f
 
 execute_whisperx(
     df_alignment,
-    model="base",
+    model="base.en",
     batch_size_whisper=16,
     num_processes_whisperx=2,
     device=device,
