@@ -123,7 +123,7 @@ df = execute_alignment(
 
 ## Contact/Support
 We look forward to any suggestions for improvement or support.
-Feel free to get in touch!
+Feel free to get in [touch](https://www.linkedin.com/in/jonas-ewertz-780b5125a/)!
 
 ## Citation
 ```
