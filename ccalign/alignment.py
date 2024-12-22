@@ -10,12 +10,11 @@ import pandas as pd
 from tqdm import tqdm
 import multiprocessing as mp
 import numpy as np
-import time
-import inflect
 import gc
-from typing import Optional, List, Dict, Any
+from typing import Optional, List, Dict, Any, Union
 from dataclasses import dataclass
-
+from datasets import Dataset
+from .utils import tokenize_text
         
 @dataclass
 class Node:
@@ -44,74 +43,6 @@ class Node:
                 f"transcript={self.transcript!r}, "
                 f"whisper_word={self.whisper_word!r}, "
                 f"start={self.start})")
-
-
-def tokenize_text(text: str, tokens_only: bool=True, sep: str=' '):
-    """
-    Function that tokenizes a text.
-    If tokens_only is True, it returns only the cleaned tokens,
-    otherwise it return a tuple of the cleaned token and the original token.
-    """
-    
-    # initialize inflect engine
-    num_engine = inflect.engine()
-    
-    token_list = []
-    
-    # sub % with 'percent'
-    text = re.sub(r'\%', ' percent', text)
-    
-    # sub $ with 'dollar'
-    text = re.sub(r'\$', 'dollar ', text)
-    
-    # sub € with 'euro'
-    text = re.sub(r'\€', 'euro ', text)
-    
-    tokens = text.split(sep)
-    # iterate through tokens
-    for _, token in enumerate(tokens):
-        
-        # continue if no charakter is in token
-        # or token is only encoded unicode
-        if len(token) == 0 or not \
-            re.search(r'[\d\w]', token):
-            continue
-        
-        # use placeholders for numbers
-        if re.search(r'\d', token):  
-            # delete point at the end, e.g. 2016.
-            clean_token = re.sub(r'\.$', '', token)
-            
-            # convert arabic number to string, e.g. 57 to fifty seven
-            try:
-                clean_token = num_engine.number_to_words(clean_token).lower()
-            except Exception as e:
-                clean_token = 'numeric_placeholder'
-        else:
-            clean_token = token.lower()
-        
-        # sub inword separators with space
-        inword_sep = list(re.finditer(r'(?<=\w)[\-\\\/](?=\w)', clean_token))
-        if len(inword_sep) > 0:
-            for sep in inword_sep:
-                clean_token = re.sub(re.escape(sep.group()), ' ', clean_token).lower()
-            
-        # delete special charakters
-        clean_token = re.sub(r'[^\w\s]', '', clean_token).lower()
-
-        # add special charakters to last token
-        if len(clean_token) == 0 and len(token_list) > 0:
-
-            token_list[-1] = (token_list[-1][0], token_list[-1][1] + ' ' + token)
-            continue
-
-        token_list.append((clean_token, token))
-    
-    if tokens_only:
-        return [token[0] for token in token_list]
-    else:
-        return token_list
-
 
 
 def compare_strings(s1, s2):
@@ -727,21 +658,13 @@ class Aligner():
         # define path variables
         speech_sequence_path = row['path_transcript']
         whisperx_path = row['path_whisperx']
-        self.audio_path = row['path_audio']
-        
-        
-        self.local_paths = {
-            'speech_sq': speech_sequence_path,
-            'whisperx': whisperx_path,
-            'audio': self.audio_path
-            }
-                        
+             
         # read transcript
-        with open(self.local_paths['speech_sq']) as transcript_f:
+        with open(speech_sequence_path) as transcript_f:
             self.speech_sequence = json.load(transcript_f)
         
         # generate whisper object
-        self.whisper = WhisperOutput(self.local_paths['whisperx'], row)
+        self.whisper = WhisperOutput(whisperx_path, row)
         
         # create a stack that keeps track of each aligned word
         self.stack = StackFrontier()
@@ -886,7 +809,6 @@ class Aligner():
                     "id": int,
                     "text": str['speaker level text here'],
                     "speaker": str[speaker name here],
-                    "speaker_info": str['speaker information here'],
                     "call_section": Literal['-PR-', '-Q_A-', '-Q-', '-OP-']]
                     },
                     {
@@ -1095,10 +1017,6 @@ def postprocess_results(results):
     -> Tuple(DataFrame, DataFrame, DataFrame, List)
     """
     
-    
-
-    start_timing = time.time()
-    
     # sep aligned stack and statistics
     df_stacks = [result[0] for result in results]
     stats = [result[1] for result in results]
@@ -1118,8 +1036,6 @@ def postprocess_results(results):
     # free memory
     del df_stacks, stats
     gc.collect()
-    
-    sys.stdout.write('stack_df_created\n')
     
     # create sentence level dataframe
     groupby_cols = ['id', 'parid', 'sentid']
@@ -1142,10 +1058,6 @@ def postprocess_results(results):
         del merge_dict[key]
         gc.collect()
 
-    end_timing = time.time()
-    dur = round((end_timing - start_timing) / 60, 3)
-    sys.stdout.write(str(dur))
-    
     return df_word_level, df_sent, df_stats, processed_rows
 
 
@@ -1193,21 +1105,28 @@ def align_dataframe(df):
     return (df_word_level, stats_list, processed_calls)
 
 
-def execute_alignment(df, num_processes_alignment:int=10, calls_per_core:int=100):
+def execute_alignment(path_data: Union[pd.DataFrame, Dataset],
+                      num_processes_alignment:int=10,
+                      calls_per_core:int=100) -> pd.DataFrame:
+    
+    # convert dataset to dataframe
+    if isinstance(path_data, Dataset):
+        path_data = pd.DataFrame(path_data)
+    
+    # dont modify original dataframe
+    path_data = path_data.copy()
     
     # initialize variables
-    if 'aligned' not in df.columns:
-        df['aligned'] = False
+    if 'aligned' not in path_data.columns:
+        path_data['aligned'] = False
     
-    rows_to_process = df[df['aligned']==False]
+    rows_to_process = path_data[path_data['aligned']==False]
     df_stats_total = pd.DataFrame()
-    start = time.time()
     iteration = 0
     
     while len(rows_to_process) > 0:
         
-        if isinstance(iteration, int):
-            iteration += 1
+        iteration += 1
         
         # create a pool of workers
         pool = mp.Pool(processes=num_processes_alignment)
@@ -1227,11 +1146,9 @@ def execute_alignment(df, num_processes_alignment:int=10, calls_per_core:int=100
         pool.close()
         pool.join()
         pool.terminate()
-        sys.stdout.write('\n\npool terminated successfully\n\n')
         
         # postprocess results
         df_word_level, df_sent_level, df_stats, processed_rows = postprocess_results(results)
-        sys.stdout.write('\n\nresults processed successfully\n\n')
 
         # add results to dataframes
         df_stats_total = pd.concat([df_stats_total, df_stats])
@@ -1239,24 +1156,19 @@ def execute_alignment(df, num_processes_alignment:int=10, calls_per_core:int=100
         # update calls to process
         for processed_row in processed_rows:
             id = processed_row[0]
-            df.loc[df['id']==id, 'aligned'] = True
+            path_data.loc[path_data['id']==id, 'aligned'] = True
             
-        rows_to_process = df[df['aligned']==False]
+        rows_to_process = path_data[path_data['aligned']==False]
         
-        end = time.time()
-        dur = round((end - start) / 60, 3)
-        left = len(rows_to_process)
-        dur_str = f'\n\nIt took {dur} min to process {num_to_process} calls.\n{left} left to process.\n\n'
-        sys.stdout.write(dur_str)
-        
-        # safe dataframes
-        df_stats_total.to_pickle(r"df_stats.pkl")
-        df_word_level.to_pickle(f'df_word_level_{iteration}.pkl')
-        df_sent_level.to_pickle(f'df_sent_level_{iteration}.pkl')
-
-        # update starting time
-        start = end
+        # safe alignment results
+        if not os.path.isdir('ccalign_results'):
+            os.mkdir('ccalign_results')
+        df_stats_total.to_pickle(os.path.join('ccalign_results', 'df_stats.pkl'))
+        df_word_level.to_pickle(os.path.join('ccalign_results', f'df_word_level_{iteration}.pkl'))
+        df_sent_level.to_pickle(os.path.join('ccalign_results', f'df_sent_level_{iteration}.pkl'))
         
         # free ram
         del results, df_word_level, df_sent_level
         gc.collect()
+    
+    return path_data

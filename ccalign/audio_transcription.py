@@ -1,10 +1,10 @@
 import whisperx
 import pandas as pd
-from alignment import tokenize_text
-from utils import execute_multiprocessing
+from .utils import tokenize_text, execute_multiprocessing
 import json
 import os
-from typing import Literal
+from datasets import Dataset
+from typing import Literal, Union
 import logging
 import warnings
 # TODO: adjust when whisperx pull request #936 is accepted
@@ -90,17 +90,21 @@ def apply_whisperx(row: pd.Series,
 
 
 
-def execute_whisperx(df: pd.DataFrame,
+def execute_whisperx(path_data: Union[pd.DataFrame, Dataset],
                      model: str="large-v2",
                      batch_size_whisper: int=16,
                      num_processes_whisperx: int=2,
                      device: Literal["cuda", "cpu"]="cpu",
-                     dtype:str="float16"):
+                     dtype:str="float16") -> pd.DataFrame:
+    
+    # convert dataset to dataframe
+    if isinstance(path_data, Dataset):
+        path_data = pd.DataFrame(path_data)
     
     # execute speech-to-text using multiprocessing
     if num_processes_whisperx > 1:
         results = execute_multiprocessing(
-                df=df,
+                df=path_data,
                 func=apply_whisperx,
                 num_processes=2,
                 timeout=120,
@@ -114,9 +118,9 @@ def execute_whisperx(df: pd.DataFrame,
     
     # execute speech-to-text process using single core 
     else:
-        results = df.apply(apply_whisperx, axis=1).to_list()
+        results = path_data.apply(apply_whisperx, axis=1).to_list()
     
     # merge infos to original dataframe
     df_results = pd.DataFrame(results)
-    return df.merge(df_results, on='id')
+    return path_data.merge(df_results, on='id')
 

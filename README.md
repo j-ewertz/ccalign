@@ -1,5 +1,5 @@
 # ccalign
-CCAlign is designed to simplify sentence-level text-audio alignment for analyzing conference calls.
+ccalign is designed to simplify sentence-level text-audio alignment for analyzing conference calls.
 Further details can be found in the original research [paper](https://ssrn.com/abstract=4307178).
 
 Please note that this repository is at an early stage. Further updates and improvements will follow shortly.
@@ -27,7 +27,7 @@ You can install ccalign using pip:
 `pip install ccalign`
 
 
-# Preprocessing and Input
+# Preprocessing, Input and Output
 ## Needed Input
 The alignment requires specific preprocessing of the transcript. A pandas DataFrame or a Dataset with the following variables must be provided: 
 - A unique ID. Feature name: 'id'
@@ -50,7 +50,6 @@ The preprocessed information must be provided in the following json format:
         "Welcome to the ABC Corporation fourth quarter earnings conference call. My name is Jane, and I will be the operator for today's call.
         Thank you for joining us.",
       "speaker": "Operator",
-      "speaker_info": "Operator",
       "call_section": "-OP-"
     },
     {
@@ -58,7 +57,6 @@ The preprocessed information must be provided in the following json format:
         "Thank you, Jane. Good morning, everyone, and thank you for joining our earnings call.
         Today, we will discuss our results for the fourth quarter and provide an outlook for the upcoming year.",
       "speaker": "John Doe",
-      "speaker_info": "Chief Executive Officer",
       "call_section": "-PR-"
     },
     {
@@ -67,6 +65,10 @@ The preprocessed information must be provided in the following json format:
   ]
 }
 ```
+## Output
+As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a json file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. Second, the `execute_alignment()` function aligns the Whisperx output with the original transcript.  
+Sentence-level timestamps, alignment statistics and word-level timestamps are exported to a directory called 'ccalign_results' in the current working directory.
+Word-level timestamps are experimental at this time.
 
 ## Configurations
 Below is an explanation of the configuration parameters used in the project:
@@ -83,6 +85,7 @@ A backup of the alignment process is created after processing a number of calls 
 
 ## Python usage
 Command line execution is not available at this time. For licensing reasons, we are unable to provide conference calls to test the code.
+
 ```python
 from ccalign import execute_whisperx, execute_alignment 
 import pandas as pd
@@ -95,7 +98,7 @@ device, dtype = ("cuda", "float16") if torch.cuda.is_available() else ("cpu", "f
 cpu_cores = mp.cpu_count()
 
 df = execute_whisperx(
-    df,
+    path_data=df,
     model="base.en",
     batch_size_whisper=16,
     num_processes_whisperx=2,
@@ -105,7 +108,7 @@ df = execute_whisperx(
         
 
 df = execute_alignment(
-    df,
+    path_data=df,
     num_processes=cpu_cores - 2,
     calls_per_core=10
     )

@@ -4,7 +4,8 @@ import pandas as pd
 from pandas import DataFrame
 import multiprocessing as mp
 from typing import Callable, Optional, List, Dict, Any
-    
+import regex as re
+import inflect    
 
 def execute_multiprocessing(df: DataFrame,
                             func: Callable,
@@ -136,4 +137,71 @@ def execute_multiprocessing(df: DataFrame,
     pbar.close()
     print(f'{func} multiprocessing finished')
     return results
+
+
+def tokenize_text(text: str, tokens_only: bool=True, sep: str=' '):
+    """
+    Function that tokenizes a text.
+    If tokens_only is True, it returns only the cleaned tokens,
+    otherwise it return a tuple of the cleaned token and the original token.
+    """
+    
+    # initialize inflect engine
+    num_engine = inflect.engine()
+    
+    token_list = []
+    
+    # sub % with 'percent'
+    text = re.sub(r'\%', ' percent', text)
+    
+    # sub $ with 'dollar'
+    text = re.sub(r'\$', 'dollar ', text)
+    
+    # sub € with 'euro'
+    text = re.sub(r'\€', 'euro ', text)
+    
+    tokens = text.split(sep)
+    # iterate through tokens
+    for _, token in enumerate(tokens):
+        
+        # continue if no charakter is in token
+        # or token is only encoded unicode
+        if len(token) == 0 or not \
+            re.search(r'[\d\w]', token):
+            continue
+        
+        # use placeholders for numbers
+        if re.search(r'\d', token):  
+            # delete point at the end, e.g. 2016.
+            clean_token = re.sub(r'\.$', '', token)
+            
+            # convert arabic number to string, e.g. 57 to fifty seven
+            try:
+                clean_token = num_engine.number_to_words(clean_token).lower()
+            except Exception as e:
+                clean_token = 'numeric_placeholder'
+        else:
+            clean_token = token.lower()
+        
+        # sub inword separators with space
+        inword_sep = list(re.finditer(r'(?<=\w)[\-\\\/](?=\w)', clean_token))
+        if len(inword_sep) > 0:
+            for sep in inword_sep:
+                clean_token = re.sub(re.escape(sep.group()), ' ', clean_token).lower()
+            
+        # delete special charakters
+        clean_token = re.sub(r'[^\w\s]', '', clean_token).lower()
+
+        # add special charakters to last token
+        if len(clean_token) == 0 and len(token_list) > 0:
+
+            token_list[-1] = (token_list[-1][0], token_list[-1][1] + ' ' + token)
+            continue
+
+        token_list.append((clean_token, token))
+    
+    if tokens_only:
+        return [token[0] for token in token_list]
+    else:
+        return token_list
 
