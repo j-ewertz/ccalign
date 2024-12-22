@@ -1163,6 +1163,7 @@ def execute_alignment(path_data: Union[pd.DataFrame, Dataset],
         # safe alignment results
         if not os.path.isdir('ccalign_results'):
             os.mkdir('ccalign_results')
+        path_data.to_pickle(os.path.join('ccalign_results', 'df_aligned_cc.pkl'))
         df_stats_total.to_pickle(os.path.join('ccalign_results', 'df_stats.pkl'))
         df_word_level.to_pickle(os.path.join('ccalign_results', f'df_word_level_{iteration}.pkl'))
         df_sent_level.to_pickle(os.path.join('ccalign_results', f'df_sent_level_{iteration}.pkl'))

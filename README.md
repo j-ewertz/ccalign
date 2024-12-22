@@ -40,7 +40,7 @@ The conference call transcript must be preprocessed at paragraph level (speaker 
 - "-Q-": An analyst question
 - "-Q_A-": Question answer of a company executive
 
-The preprocessed information must be provided in the following json format:
+The preprocessed information must be provided in the following JSON format:
 ### Example: Earnings Conference Call JSON Format
 ```
 {
@@ -66,12 +66,12 @@ The preprocessed information must be provided in the following json format:
 }
 ```
 ## Output
-As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a json file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. Second, the `execute_alignment()` function aligns the Whisperx output with the original transcript.  
-Sentence-level timestamps, alignment statistics and word-level timestamps are exported to a directory called 'ccalign_results' in the current working directory.
+As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a JSON file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. Second, the `execute_alignment()` function aligns the Whisperx output with the original transcript.  
+Sentence-level timestamps, alignment statistics and word-level timestamps are exported to a directory called *ccalign_results* in the current working directory.
 Word-level timestamps are experimental at this time.
 
 ## Configurations
-Below is an explanation of the configuration parameters used in the project:
+The following is an explanation of the configuration parameters used in the project:
 - model: Specifies the transcription model based on Whisper, which converts audio input into text.
 - device: Defines the hardware (e.g., CPU or GPU) used for transcription.
 - batch_size: Determines the number of audio data batches processed simultaneously within a single run of the Whisper model.
@@ -80,7 +80,7 @@ This impacts processing speed and memory usage.
 - num_processes_whisperx: Sets the number of parallel transcription processes used for processing. The number should be adjusted based on available GPU memory.
 - num_processes_alignment: Defines the number of parallel alignment processes used. These processes run exclusively on the CPU.
 - calls_per_core: Specifies how many conference calls are processed by a single process.
-A backup of the alignment process is created after processing a number of calls equal to num_processes_alignment x calls_per_core.
+A backup of the alignment process is created after processing a number of calls equal to num_processes_alignment * calls_per_core.
 
 
 ## Python usage
