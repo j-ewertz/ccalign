@@ -14,10 +14,7 @@ setup(
     long_description_content_type="text/markdown",
     url="https://github.com/j-ewertz/ccalign",
     packages=find_packages(exclude=["tests*"]),
-    install_requires=[
-        "whisperx @ git+https://github.com/m-bain/whisperx.git"
-    ] + 
-    parse_requirements("requirements.txt"),
+    install_requires=parse_requirements("requirements.txt"),
     classifiers=[
         "Programming Language :: Python :: 3",
         "License :: OSI Approved :: MIT License",

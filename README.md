@@ -21,7 +21,12 @@ You can install PyTorch and CUDA using pip:
 
 You can check the PyTorch [homepage](https://pytorch.org/get-started/locally/) for more setups.
 
-### 2. Install ccalign
+### 2. Install whisperx
+The repository depends on [whisperx](https://github.com/m-bain/whisperX). You can install the latest version using pip:
+
+`pip install git+https://github.com/m-bain/whisperx.git`
+
+### 3. Install ccalign
 You can install ccalign using pip:
 
 `pip install ccalign`
