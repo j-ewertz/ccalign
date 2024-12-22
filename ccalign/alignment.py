@@ -649,6 +649,21 @@ class WhisperOutput():
 class Aligner():
     """
     Class that takes a row containing path information and performs the alignment.
+    Preprocessed JSON must be provided in the following format:
+    
+    {
+        "paragraphs": [
+            {
+            "text": str['paragraph text here'],
+            "speaker": str['speaker name here'],
+            "call_section": Literal['-PR-', '-Q_A-', '-Q-', '-OP-']]
+            },
+            {
+            ...
+            }
+        ]
+    }
+    
     """
     
     def __init__(self, row):
@@ -801,21 +816,6 @@ class Aligner():
         
         """Algorithm that alignes whisperx output and transcript
 
-        Args:
-            dict in the folling format:
-            {
-                "paragraphs": [
-                    {
-                    "id": int,
-                    "text": str['speaker level text here'],
-                    "speaker": str[speaker name here],
-                    "call_section": Literal['-PR-', '-Q_A-', '-Q-', '-OP-']]
-                    },
-                    {
-                    ...
-                    }
-                ]
-            }
 
         Returns:
             stack, statistics: returns aligned stack and statistics 
