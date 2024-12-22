@@ -1,11 +1,11 @@
 # ccalign
-This repositiry provides a sentence-level text-audio alignment code for conference calls.
+CCAlign is designed to simplify sentence-level text-audio alignment for analyzing conference calls.
 Further details can be found in the original research [paper](https://ssrn.com/abstract=4307178).
 
 Please note that this repository is at an early stage. Further updates and improvements will follow shortly.
 
 # Setup and Installation
-This repository has currently only been tested on Linux (Ubuntu 22.04 jammy).
+This repository has currently only been tested on Linux (*Ubuntu 22.04 jammy*).
 - GPU transcription execution requires the NVIDIA libraries cuBLAS 11.x and cuDNN 8.x to be installed on the system.
 - You also need to install FFmpeg on your system. You can follow [openAI instructions](https://github.com/openai/whisper#setup).
 - Make sure to create and activate a virtual environment for a non-global installation:
@@ -21,18 +21,14 @@ You can install PyTorch and CUDA using pip:
 
 You can check the PyTorch [homepage](https://pytorch.org/get-started/locally/) for more setups.
 
-### 2. Install whisperx
-The repository depends on [whisperx](https://github.com/m-bain/whisperX). You can install the latest version using pip:
-
-`pip install git+https://github.com/m-bain/whisperx.git`
-
-### 3. Install ccalign
+### 2. Install ccalign
+You can install ccalign using pip:
 
 `pip install ccalign`
 
 
 # Preprocessing and Input
-## Needed features
+## Needed Input
 The alignment requires specific preprocessing of the transcript. A pandas DataFrame or a Dataset with the following variables must be provided: 
 - A unique ID. Feature name: 'id'
 - A path to the conference call audio file. Feature name: 'path_audio'
@@ -44,7 +40,7 @@ The conference call transcript must be preprocessed at paragraph level (speaker 
 - "-Q-": An analyst question
 - "-Q_A-": Question answer of a company executive
 
-The preprocessed information must be provided in the followig json format:
+The preprocessed information must be provided in the following json format:
 ### Example: Earnings Conference Call JSON Format
 ```
 {
@@ -64,7 +60,7 @@ The preprocessed information must be provided in the followig json format:
       "speaker": "John Doe",
       "speaker_info": "Chief Executive Officer",
       "call_section": "-PR-"
-    }
+    },
     {
       ...
     }
@@ -86,14 +82,14 @@ A backup of the alignment process is created after processing a number of calls 
 
 
 ## Python usage
-Command line execution is not available at this time.
+Command line execution is not available at this time. For licensing reasons, we are unable to provide conference calls to test the code.
 ```python
-from ccalign import execute_alignment, execute_whisperx
+from ccalign import execute_whisperx, execute_alignment 
 import pandas as pd
 import torch
 import multiprocessing as mp
 
-df = pd.read_parquet(r'path/to/dataframe.parquet')
+df = pd.read_pickle(r'path/to/dataframe.pkl')
 
 device, dtype = ("cuda", "float16") if torch.cuda.is_available() else ("cpu", "float32")
 cpu_cores = mp.cpu_count()
@@ -117,7 +113,7 @@ df = execute_alignment(
 ```
 
 ## License
-- This repository depends on whisperx (BSD 2-Clause License).
+- This repository depends on [whisperx](https://github.com/m-bain/whisperX) (BSD 2-Clause License).
 - This repository is licensed under the MIT license.
 
 ## Contact/Support
@@ -131,4 +127,4 @@ Feel free to get in touch!
   author={Ewertz, Jonas and Knickrehm, Charlotte and Nienhaus, Martin and Reichmann, Doron},
   year={2024},
   note={Available at SSRN: \url{https://ssrn.com/abstract=4307178}
-}
+  }

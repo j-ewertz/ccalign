@@ -1,4 +1,4 @@
-# Python dependencies required for development
+# Python dependencies required for installation
 transformers
 fastparquet==2024.11.0
 inflect==7.4.0

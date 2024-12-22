@@ -2,8 +2,7 @@
 __pycache__/
 *.py[cod]
 *$py.class
-ccalign/package_testing
-ccalign/d_convert_json.py
+tests
 
 # C extensions
 *.so
