@@ -66,7 +66,9 @@ The preprocessed information must be provided in the following JSON format:
 }
 ```
 ## Output
-As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a JSON file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. Second, the `execute_alignment()` function aligns the Whisperx output with the original transcript.  
+As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a JSON file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. 
+
+Second, the `execute_alignment()` function aligns the Whisperx output with the original transcript.  
 Sentence-level timestamps, alignment statistics and word-level timestamps are exported to a directory called *ccalign_results* in the current working directory.
 Word-level timestamps are experimental at this time.
 
