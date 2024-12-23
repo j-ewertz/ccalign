@@ -133,8 +133,8 @@ Feel free to get in [touch](https://www.linkedin.com/in/jonas-ewertz-780b5125a/)
 ## Citation
 ```
 @article{ewertz2024,
-  title={Listen Closely: Listen Closely: Measuring Vocal Tone in Corporate Disclosures},
+  title={Listen Closely: Measuring Vocal Tone in Corporate Disclosures},
   author={Ewertz, Jonas and Knickrehm, Charlotte and Nienhaus, Martin and Reichmann, Doron},
   year={2024},
-  note={Available at SSRN: \url{https://ssrn.com/abstract=4307178}
+  note={Available at SSRN: \url{https://ssrn.com/abstract=4307178}}
   }
