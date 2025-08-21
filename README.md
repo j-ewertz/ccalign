@@ -1,8 +1,22 @@
 # ccalign
-ccalign is designed to simplify sentence-level text-audio alignment for analyzing conference calls.
+ccalign provides robust forced alignment algorithms for aligning earnings conference call audio with human-corrected transcripts. It builds on [WhisperX](https://github.com/m-bain/whisperX), which delivers accurate word-level timestamps.
+
 Further details can be found in the original research [paper](https://ssrn.com/abstract=4307178).
 
-Please note that this repository is at an early stage. Further updates and improvements will follow shortly.
+### Key Features
+- Validated in challenging settings: Validate for earnings conference calls which cover a broad range of speakers, accents, technical language and noisy environments.
+- Transcript–audio alignment: Aligns audio with accurate transcripts from sources such as LSEG, Capital IQ, or political communications (e.g., central banks).
+- Sentence-level mapping: Iteratively maps each transcript sentence to WhisperX output, enforcing coverage of the entire transcript.
+- Speaker inference: Infers speaker information directly from the human-edited transcript.
+- Hallucination safeguard: Provides a correct_sent flag that indicates whether an alignment is likely correct, alleviating error from WhisperX hallucinations.
+
+### How it works
+1.	Input: the audio file and the human transcript.
+2.	WhisperX generates word-level timestamps from the audio.
+3.	ccalign aligns each transcript sentence to WhisperX output in a forced-alignment–like procedure.
+4.	The algorithm outputs an enriched transcript with timestamps, speaker attribution, and additional information on the quality of the alignment.
+
+Please note that this repository is at an early stage - further updates will follow shortly.
 
 # Setup and Installation
 This repository has currently only been tested on Linux (*Ubuntu 22.04 jammy*).
