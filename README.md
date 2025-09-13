@@ -146,9 +146,10 @@ Feel free to get in [touch](https://www.linkedin.com/in/jonas-ewertz-780b5125a/)
 
 ## Citation
 ```
-@article{ewertz2024,
-  title={Listen Closely: Measuring Vocal Tone in Corporate Disclosures},
-  author={Ewertz, Jonas and Knickrehm, Charlotte and Nienhaus, Martin and Reichmann, Doron},
-  year={2024},
-  note={Available at SSRN: \url{https://ssrn.com/abstract=4307178}}
-  }
+@article{ewertz2025,
+  title        = {Listen Closely: Measuring Vocal Tone in Corporate Disclosures},
+  author       = {Ewertz, Jonas and Knickrehm, Charlotte and Nienhaus, Martin and Reichmann, Doron},
+  year         = {2025},
+  journal      = {Journal of Accounting Research},
+  url          = {https://doi.org/10.1111/1475-679X.70015}
+}
