@@ -52,6 +52,7 @@ The alignment requires specific preprocessing of the transcript. A pandas DataFr
 - A unique ID. Feature name: 'id'
 - A path to the conference call audio file. Feature name: 'path_audio'
 - A path to the preprocessed conference call transcript. Feature name: 'path_transcript'
+
 ### Preprocessed conference call transcript
 The conference call transcript must be preprocessed at paragraph level (speaker changes) and contain the original text, the speaker and information about the call section. The call section can be any of the following strings:
 - "-OP-": Operator instructions
@@ -84,6 +85,13 @@ The preprocessed information must be provided in the following JSON format:
   ]
 }
 ```
+
+### Normalization of special characters:
+Special characters and numeric values are automatically normalized to ensure consistent alignment.
+- Symbols such as €, $, and % are converted into their textual equivalents (euro, dollar, percent).
+- Arabic numerals are converted into written-out strings (e.g., 57 to fifty seven).
+This normalization helps to improve transcript–audio matching accuracy.
+
 ## Output
 As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a JSON file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. 
 
