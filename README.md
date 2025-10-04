@@ -90,7 +90,8 @@ The preprocessed information must be provided in the following JSON format:
 Special characters and numeric values are automatically normalized to ensure consistent alignment.
 - Symbols such as €, $, and % are converted into their textual equivalents (euro, dollar, percent).
 - Arabic numerals are converted into written-out strings (e.g., 57 to fifty seven).
-This normalization helps to improve transcript–audio matching accuracy.
+
+This normalization helps to improve transcript-audio matching accuracy.
 
 ## Output
 As a first step, the `execute_whisperx()` function transcribes the audio file with word-level timestamps using [whisperx](https://github.com/m-bain/whisperX). The transcription files (whisper and whisperx) are saved as a JSON file in the same folder as the audio file. If you already have the whisperx timestamps, you can simply define the path in the DataFrame or Dataset as "path_whisperx" and skip this step. 
