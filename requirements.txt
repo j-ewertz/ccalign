@@ -1,7 +1,7 @@
 # Python dependencies required for installation
 setuptools>=65
 transformers
-fastparquet==2024.11.0
+fastparquet==2024.2.0
 inflect==7.4.0
 Levenshtein==0.26.1
 pyarrow==18.1.0
