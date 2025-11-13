@@ -1,15 +1,15 @@
 # Python dependencies required for installation
 setuptools>=65
 transformers
-fastparquet==2024.2.0
-inflect==7.4.0
-Levenshtein==0.26.1
-pyarrow==18.1.0
-pydub==0.25.1
-python-Levenshtein==0.26.1
-regex==2024.11.6
-tqdm==4.67.1
-faster-whisper==1.0.0
-ctranslate2==4.4.0
+fastparquet
+inflect
+Levenshtein
+pyarrow
+pydub
+python-Levenshtein
+regex
+tqdm
+faster-whisper
+ctranslate20
 nltk
 datasets
